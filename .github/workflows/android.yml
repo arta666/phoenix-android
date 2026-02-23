@@ -37,17 +37,31 @@ jobs:
             -o android/app/src/main/jniLibs/arm64-v8a/libphoenixclient.so \
             ./cmd/android-client/
 
+      - name: Decode keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > /tmp/phoenix-release.jks
+
       - name: Make Gradle wrapper executable
         run: chmod +x android/gradlew
 
-      - name: Build release APK
+      - name: Build signed release APK
         working-directory: android
-        run: ./gradlew assembleRelease --no-daemon
+        env:
+          KEYSTORE_PATH: /tmp/phoenix-release.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          ./gradlew assembleRelease --no-daemon \
+            -PKEYSTORE_PATH=$KEYSTORE_PATH \
+            -PKEYSTORE_PASSWORD=$KEYSTORE_PASSWORD \
+            -PKEY_ALIAS=$KEY_ALIAS \
+            -PKEY_PASSWORD=$KEY_PASSWORD
 
       - name: Rename APK with version tag
         run: |
           VERSION="${{ github.ref_name }}"
-          cp android/app/build/outputs/apk/release/app-release-unsigned.apk \
+          cp android/app/build/outputs/apk/release/app-release.apk \
              phoenix-android-${VERSION}.apk
 
       - name: Upload APK to GitHub Release

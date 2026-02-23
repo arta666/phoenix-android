@@ -8,11 +8,16 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
-// Load signing properties from local.properties (never committed to git).
+// Load signing properties — Gradle project properties (-P flags) take priority
+// over local.properties so CI can inject values via environment without a keystore file.
 val localProps = Properties().also { props ->
     val f = rootProject.file("local.properties")
     if (f.exists()) props.load(f.inputStream())
 }
+
+fun signingProp(key: String): String? =
+    findProperty(key) as String?          // -Pkey=value from CLI / CI
+        ?: localProps[key] as String?     // local.properties on dev machine
 
 android {
     namespace = "com.phoenix.client"
@@ -30,10 +35,10 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile     = localProps["KEYSTORE_PATH"]?.let { file(it) }
-            storePassword = localProps["KEYSTORE_PASSWORD"] as String?
-            keyAlias      = localProps["KEY_ALIAS"] as String?
-            keyPassword   = localProps["KEY_PASSWORD"] as String?
+            storeFile     = signingProp("KEYSTORE_PATH")?.let { file(it) }
+            storePassword = signingProp("KEYSTORE_PASSWORD")
+            keyAlias      = signingProp("KEY_ALIAS")
+            keyPassword   = signingProp("KEY_PASSWORD")
         }
     }
 
