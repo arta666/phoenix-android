@@ -1,0 +1,224 @@
+package com.phoenix.client.ui.viewmodel
+
+import android.app.Application
+import android.content.Intent
+import android.net.VpnService
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import com.phoenix.client.domain.model.ClientConfig
+import com.phoenix.client.domain.repository.ConfigRepository
+import com.phoenix.client.service.PhoenixService
+import com.phoenix.client.service.PhoenixVpnService
+import com.phoenix.client.service.ServiceEvents
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+enum class ConnectionStatus { DISCONNECTED, CONNECTING, CONNECTED, ERROR }
+enum class ConnectionMode { SOCKS5, VPN }
+
+private const val MAX_LOG_LINES = 200
+private const val CONNECT_TIMEOUT_MS = 20_000L
+
+data class HomeUiState(
+    val connectionStatus: ConnectionStatus = ConnectionStatus.DISCONNECTED,
+    val errorMessage: String? = null,
+    // Stats
+    val connectionAttempts: Int = 0,
+    val uptimeSeconds: Long = 0L,
+    // Logs
+    val logs: List<String> = emptyList(),
+    /** Non-null when we need the UI to launch the VPN permission intent. */
+    val vpnPermissionIntent: Intent? = null,
+)
+
+@HiltViewModel
+class HomeViewModel @Inject constructor(
+    application: Application,
+    configRepository: ConfigRepository,
+) : AndroidViewModel(application) {
+
+    private val _uiState = MutableStateFlow(HomeUiState())
+    val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
+
+    val config: StateFlow<ClientConfig> = configRepository
+        .observeConfig()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, ClientConfig())
+
+    /** Derived from persisted config — drives mode display in the UI. */
+    val connectionMode: StateFlow<ConnectionMode> = config
+        .map { if (it.useVpnMode) ConnectionMode.VPN else ConnectionMode.SOCKS5 }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, ConnectionMode.SOCKS5)
+
+    /** True when the user has saved a non-blank server address. */
+    val isConfigured: StateFlow<Boolean> = config
+        .map { it.remoteAddr.isNotBlank() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    private var uptimeJob: Job? = null
+    private var timeoutJob: Job? = null
+
+    init {
+        // Collect service status events from the in-process SharedFlow.
+        viewModelScope.launch {
+            ServiceEvents.status.collect { event ->
+                timeoutJob?.cancel()
+                when (event) {
+                    is ServiceEvents.StatusEvent.Connected -> {
+                        _uiState.update { it.copy(connectionStatus = ConnectionStatus.CONNECTED, errorMessage = null) }
+                        startUptimeClock()
+                    }
+                    is ServiceEvents.StatusEvent.Disconnected -> {
+                        stopUptimeClock()
+                        _uiState.update { it.copy(connectionStatus = ConnectionStatus.DISCONNECTED, errorMessage = null) }
+                    }
+                    is ServiceEvents.StatusEvent.Error -> {
+                        stopUptimeClock()
+                        _uiState.update {
+                            it.copy(connectionStatus = ConnectionStatus.ERROR, errorMessage = event.message)
+                        }
+                    }
+                }
+            }
+        }
+
+        // Collect log lines from the service.
+        viewModelScope.launch {
+            ServiceEvents.log.collect { line ->
+                _uiState.update { state ->
+                    val newLogs = (state.logs + line).takeLast(MAX_LOG_LINES)
+                    state.copy(logs = newLogs)
+                }
+            }
+        }
+    }
+
+    // ── Public actions ─────────────────────────────────────────────────────────
+
+    /** Called when user taps the main Connect/Disconnect button. */
+    fun onMainButtonClicked() {
+        when (_uiState.value.connectionStatus) {
+            ConnectionStatus.CONNECTED -> disconnect()
+            ConnectionStatus.DISCONNECTED, ConnectionStatus.ERROR -> connect()
+            ConnectionStatus.CONNECTING -> { /* ignored — use the separate Cancel button */ }
+        }
+    }
+
+    /** Called when user taps the Cancel button shown during CONNECTING state. */
+    fun onCancelClicked() {
+        if (_uiState.value.connectionStatus == ConnectionStatus.CONNECTING) {
+            disconnect()
+        }
+    }
+
+    /** Called by the UI after the VPN permission dialog returns RESULT_OK. */
+    fun onVpnPermissionGranted() {
+        _uiState.update { it.copy(vpnPermissionIntent = null) }
+        startConnection()
+    }
+
+    /** Called by the UI when the VPN permission dialog is dismissed/denied. */
+    fun onVpnPermissionDenied() {
+        _uiState.update { it.copy(vpnPermissionIntent = null, connectionStatus = ConnectionStatus.DISCONNECTED) }
+    }
+
+    /** Called by the UI immediately after consuming the vpnPermissionIntent. */
+    fun clearVpnPermissionIntent() {
+        _uiState.update { it.copy(vpnPermissionIntent = null) }
+    }
+
+    fun clearLogs() {
+        _uiState.update { it.copy(logs = emptyList()) }
+    }
+
+    // ── Private helpers ────────────────────────────────────────────────────────
+
+    private fun connect() {
+        val currentConfig = config.value
+        if (currentConfig.remoteAddr.isBlank()) {
+            _uiState.update {
+                it.copy(connectionStatus = ConnectionStatus.ERROR, errorMessage = "Server address is required — go to Configuration")
+            }
+            return
+        }
+
+        if (currentConfig.useVpnMode) {
+            val vpnIntent = VpnService.prepare(getApplication())
+            if (vpnIntent != null) {
+                // Emit intent for the UI to launch; actual connection starts in onVpnPermissionGranted()
+                _uiState.update { it.copy(vpnPermissionIntent = vpnIntent) }
+                return
+            }
+            // Permission already granted — fall through
+        }
+
+        startConnection()
+    }
+
+    private fun startConnection() {
+        _uiState.update { current ->
+            current.copy(
+                connectionStatus = ConnectionStatus.CONNECTING,
+                errorMessage = null,
+                connectionAttempts = current.connectionAttempts + 1,
+                uptimeSeconds = 0L,
+            )
+        }
+
+        // Safety timeout — revert if no CONNECTED/ERROR event arrives within 20 s
+        timeoutJob?.cancel()
+        timeoutJob = viewModelScope.launch {
+            delay(CONNECT_TIMEOUT_MS)
+            if (_uiState.value.connectionStatus == ConnectionStatus.CONNECTING) {
+                _uiState.update {
+                    it.copy(connectionStatus = ConnectionStatus.ERROR, errorMessage = "Connection timed out after 20 s")
+                }
+            }
+        }
+
+        val ctx = getApplication<Application>()
+        if (config.value.useVpnMode) {
+            ctx.startForegroundService(PhoenixVpnService.startIntent(ctx, config.value))
+        } else {
+            ctx.startForegroundService(PhoenixService.startIntent(ctx, config.value))
+        }
+    }
+
+    private fun disconnect() {
+        timeoutJob?.cancel()
+        stopUptimeClock()
+        val ctx = getApplication<Application>()
+        if (config.value.useVpnMode) {
+            ctx.startService(PhoenixVpnService.stopIntent(ctx))
+        } else {
+            ctx.startService(PhoenixService.stopIntent(ctx))
+        }
+        _uiState.update { it.copy(connectionStatus = ConnectionStatus.DISCONNECTED, errorMessage = null) }
+    }
+
+    private fun startUptimeClock() {
+        uptimeJob?.cancel()
+        uptimeJob = viewModelScope.launch {
+            while (isActive) {
+                delay(1_000)
+                _uiState.update { it.copy(uptimeSeconds = it.uptimeSeconds + 1) }
+            }
+        }
+    }
+
+    private fun stopUptimeClock() {
+        uptimeJob?.cancel()
+        uptimeJob = null
+        _uiState.update { it.copy(uptimeSeconds = 0L) }
+    }
+}

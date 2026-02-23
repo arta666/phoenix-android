@@ -1,0 +1,34 @@
+R_DEF: Internal format may change without notice
+local
+color ic_launcher_background
+drawable ic_launcher_background
+drawable ic_launcher_foreground
+mipmap ic_launcher
+mipmap ic_launcher_foreground
+mipmap ic_launcher_round
+string app_name
+string config_enable_udp
+string config_gen_keys
+string config_private_key_hint
+string config_private_key_path
+string config_save
+string config_saved
+string config_server_address
+string config_server_address_hint
+string config_server_pubkey
+string config_server_pubkey_hint
+string connect
+string disconnect
+string nav_config
+string nav_home
+string nav_settings
+string notification_channel_name
+string notification_text
+string notification_title
+string socks5_info
+string status_connected
+string status_connecting
+string status_disconnected
+string status_error
+style Theme.Phoenix
+xml network_security_config

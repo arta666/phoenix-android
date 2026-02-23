@@ -1,0 +1,4 @@
+-keep,allowobfuscation,allowshrinking class com.phoenix.client.ui.viewmodel.ConfigViewModel
+-keep,allowobfuscation,allowshrinking class com.phoenix.client.ui.viewmodel.ConfigViewModel
+-keep,allowobfuscation,allowshrinking class com.phoenix.client.ui.viewmodel.SettingsViewModel
+-keep,allowobfuscation,allowshrinking class com.phoenix.client.ui.viewmodel.SettingsViewModel

@@ -1,0 +1,197 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.phoenix.client"
+4    android:versionCode="1"
+5    android:versionName="1.0.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="26"
+9        android:targetSdkVersion="35" />
+10
+11    <uses-permission android:name="android.permission.INTERNET" />
+11-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:4:5-67
+11-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:4:22-64
+12    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+12-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:5:5-77
+12-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:5:22-74
+13    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+13-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:6:5-87
+13-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:6:22-84
+14    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+14-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:7:5-89
+14-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:7:22-86
+15    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+15-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:8:5-77
+15-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:8:22-74
+16    <uses-permission android:name="android.permission.BIND_VPN_SERVICE" />
+16-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:9:5-75
+16-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:9:22-72
+17
+18    <permission
+18-->[androidx.core:core:1.15.0] /Users/armanbalash/.gradle/caches/8.11/transforms/5f8d546d0e43e078146770bae1e2d722/transformed/core-1.15.0/AndroidManifest.xml:22:5-24:47
+19        android:name="com.phoenix.client.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+19-->[androidx.core:core:1.15.0] /Users/armanbalash/.gradle/caches/8.11/transforms/5f8d546d0e43e078146770bae1e2d722/transformed/core-1.15.0/AndroidManifest.xml:23:9-81
+20        android:protectionLevel="signature" />
+20-->[androidx.core:core:1.15.0] /Users/armanbalash/.gradle/caches/8.11/transforms/5f8d546d0e43e078146770bae1e2d722/transformed/core-1.15.0/AndroidManifest.xml:24:9-44
+21
+22    <uses-permission android:name="com.phoenix.client.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+22-->[androidx.core:core:1.15.0] /Users/armanbalash/.gradle/caches/8.11/transforms/5f8d546d0e43e078146770bae1e2d722/transformed/core-1.15.0/AndroidManifest.xml:26:5-97
+22-->[androidx.core:core:1.15.0] /Users/armanbalash/.gradle/caches/8.11/transforms/5f8d546d0e43e078146770bae1e2d722/transformed/core-1.15.0/AndroidManifest.xml:26:22-94
+23
+24    <application
+24-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:11:5-50:19
+25        android:name="com.phoenix.client.PhoenixApp"
+25-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:12:9-35
+26        android:allowBackup="true"
+26-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:13:9-35
+27        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+27-->[androidx.core:core:1.15.0] /Users/armanbalash/.gradle/caches/8.11/transforms/5f8d546d0e43e078146770bae1e2d722/transformed/core-1.15.0/AndroidManifest.xml:28:18-86
+28        android:debuggable="true"
+29        android:extractNativeLibs="true"
+29-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:20:9-41
+30        android:icon="@mipmap/ic_launcher"
+30-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:14:9-43
+31        android:label="@string/app_name"
+31-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:15:9-41
+32        android:networkSecurityConfig="@xml/network_security_config"
+32-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:19:9-69
+33        android:roundIcon="@mipmap/ic_launcher_round"
+33-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:16:9-54
+34        android:supportsRtl="true"
+34-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:17:9-35
+35        android:theme="@style/Theme.Phoenix" >
+35-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:18:9-45
+36        <activity
+36-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:22:9-30:20
+37            android:name="com.phoenix.client.ui.MainActivity"
+37-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:23:13-44
+38            android:exported="true"
+38-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:24:13-36
+39            android:theme="@style/Theme.Phoenix" >
+39-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:25:13-49
+40            <intent-filter>
+40-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:26:13-29:29
+41                <action android:name="android.intent.action.MAIN" />
+41-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:27:17-69
+41-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:27:25-66
+42
+43                <category android:name="android.intent.category.LAUNCHER" />
+43-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:28:17-77
+43-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:28:27-74
+44            </intent-filter>
+45        </activity>
+46
+47        <service
+47-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:32:9-35:56
+48            android:name="com.phoenix.client.service.PhoenixService"
+48-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:33:13-51
+49            android:exported="false"
+49-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:34:13-37
+50            android:foregroundServiceType="dataSync" />
+50-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:35:13-53
+51        <service
+51-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:37:9-48:19
+52            android:name="com.phoenix.client.service.PhoenixVpnService"
+52-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:38:13-54
+53            android:exported="true"
+53-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:39:13-36
+54            android:foregroundServiceType="specialUse"
+54-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:40:13-55
+55            android:permission="android.permission.BIND_VPN_SERVICE" >
+55-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:41:13-69
+56            <intent-filter>
+56-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:42:13-44:29
+57                <action android:name="android.net.VpnService" />
+57-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:43:17-65
+57-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:43:25-62
+58            </intent-filter>
+59
+60            <property
+60-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:45:13-47:127
+61                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+61-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:46:17-76
+62                android:value="This VPN service tunnels all device traffic through the Phoenix proxy to bypass censorship." />
+62-->/Users/armanbalash/Desktop/phoenix/android/app/src/main/AndroidManifest.xml:47:17-124
+63        </service>
+64
+65        <provider
+65-->[androidx.emoji2:emoji2:1.3.0] /Users/armanbalash/.gradle/caches/8.11/transforms/95b6f848ea84ced75ffa76aa13b94e6b/transformed/emoji2-1.3.0/AndroidManifest.xml:24:9-32:20
+66            android:name="androidx.startup.InitializationProvider"
+66-->[androidx.emoji2:emoji2:1.3.0] /Users/armanbalash/.gradle/caches/8.11/transforms/95b6f848ea84ced75ffa76aa13b94e6b/transformed/emoji2-1.3.0/AndroidManifest.xml:25:13-67
+67            android:authorities="com.phoenix.client.androidx-startup"
+67-->[androidx.emoji2:emoji2:1.3.0] /Users/armanbalash/.gradle/caches/8.11/transforms/95b6f848ea84ced75ffa76aa13b94e6b/transformed/emoji2-1.3.0/AndroidManifest.xml:26:13-68
+68            android:exported="false" >
+68-->[androidx.emoji2:emoji2:1.3.0] /Users/armanbalash/.gradle/caches/8.11/transforms/95b6f848ea84ced75ffa76aa13b94e6b/transformed/emoji2-1.3.0/AndroidManifest.xml:27:13-37
+69            <meta-data
+69-->[androidx.emoji2:emoji2:1.3.0] /Users/armanbalash/.gradle/caches/8.11/transforms/95b6f848ea84ced75ffa76aa13b94e6b/transformed/emoji2-1.3.0/AndroidManifest.xml:29:13-31:52
+70                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+70-->[androidx.emoji2:emoji2:1.3.0] /Users/armanbalash/.gradle/caches/8.11/transforms/95b6f848ea84ced75ffa76aa13b94e6b/transformed/emoji2-1.3.0/AndroidManifest.xml:30:17-75
+71                android:value="androidx.startup" />
+71-->[androidx.emoji2:emoji2:1.3.0] /Users/armanbalash/.gradle/caches/8.11/transforms/95b6f848ea84ced75ffa76aa13b94e6b/transformed/emoji2-1.3.0/AndroidManifest.xml:31:17-49
+72            <meta-data
+72-->[androidx.lifecycle:lifecycle-process:2.8.7] /Users/armanbalash/.gradle/caches/8.11/transforms/a907627f8a11e33ad650bc39e1d60a46/transformed/lifecycle-process-2.8.7/AndroidManifest.xml:29:13-31:52
+73                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+73-->[androidx.lifecycle:lifecycle-process:2.8.7] /Users/armanbalash/.gradle/caches/8.11/transforms/a907627f8a11e33ad650bc39e1d60a46/transformed/lifecycle-process-2.8.7/AndroidManifest.xml:30:17-78
+74                android:value="androidx.startup" />
+74-->[androidx.lifecycle:lifecycle-process:2.8.7] /Users/armanbalash/.gradle/caches/8.11/transforms/a907627f8a11e33ad650bc39e1d60a46/transformed/lifecycle-process-2.8.7/AndroidManifest.xml:31:17-49
+75            <meta-data
+75-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/armanbalash/.gradle/caches/8.11/transforms/e451ca9f8bcaef61de0da03c405720ec/transformed/profileinstaller-1.3.1/AndroidManifest.xml:29:13-31:52
+76                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+76-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/armanbalash/.gradle/caches/8.11/transforms/e451ca9f8bcaef61de0da03c405720ec/transformed/profileinstaller-1.3.1/AndroidManifest.xml:30:17-85
+77                android:value="androidx.startup" />
+77-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/armanbalash/.gradle/caches/8.11/transforms/e451ca9f8bcaef61de0da03c405720ec/transformed/profileinstaller-1.3.1/AndroidManifest.xml:31:17-49
+78        </provider>
+79
+80        <activity
+80-->[androidx.compose.ui:ui-test-manifest:1.7.6] /Users/armanbalash/.gradle/caches/8.11/transforms/43b0e2150e94d888f82bd27dea22c400/transformed/ui-test-manifest-1.7.6/AndroidManifest.xml:23:9-25:39
+81            android:name="androidx.activity.ComponentActivity"
+81-->[androidx.compose.ui:ui-test-manifest:1.7.6] /Users/armanbalash/.gradle/caches/8.11/transforms/43b0e2150e94d888f82bd27dea22c400/transformed/ui-test-manifest-1.7.6/AndroidManifest.xml:24:13-63
+82            android:exported="true" />
+82-->[androidx.compose.ui:ui-test-manifest:1.7.6] /Users/armanbalash/.gradle/caches/8.11/transforms/43b0e2150e94d888f82bd27dea22c400/transformed/ui-test-manifest-1.7.6/AndroidManifest.xml:25:13-36
+83        <activity
+83-->[androidx.compose.ui:ui-tooling-android:1.7.6] /Users/armanbalash/.gradle/caches/8.11/transforms/7969a84fce41ebf1f4b8ac9c72dd148e/transformed/ui-tooling-release/AndroidManifest.xml:23:9-25:39
+84            android:name="androidx.compose.ui.tooling.PreviewActivity"
+84-->[androidx.compose.ui:ui-tooling-android:1.7.6] /Users/armanbalash/.gradle/caches/8.11/transforms/7969a84fce41ebf1f4b8ac9c72dd148e/transformed/ui-tooling-release/AndroidManifest.xml:24:13-71
+85            android:exported="true" />
+85-->[androidx.compose.ui:ui-tooling-android:1.7.6] /Users/armanbalash/.gradle/caches/8.11/transforms/7969a84fce41ebf1f4b8ac9c72dd148e/transformed/ui-tooling-release/AndroidManifest.xml:25:13-36
+86
+87        <receiver
+87-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/armanbalash/.gradle/caches/8.11/transforms/e451ca9f8bcaef61de0da03c405720ec/transformed/profileinstaller-1.3.1/AndroidManifest.xml:34:9-52:20
+88            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+88-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/armanbalash/.gradle/caches/8.11/transforms/e451ca9f8bcaef61de0da03c405720ec/transformed/profileinstaller-1.3.1/AndroidManifest.xml:35:13-76
+89            android:directBootAware="false"
+89-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/armanbalash/.gradle/caches/8.11/transforms/e451ca9f8bcaef61de0da03c405720ec/transformed/profileinstaller-1.3.1/AndroidManifest.xml:36:13-44
+90            android:enabled="true"
+90-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/armanbalash/.gradle/caches/8.11/transforms/e451ca9f8bcaef61de0da03c405720ec/transformed/profileinstaller-1.3.1/AndroidManifest.xml:37:13-35
+91            android:exported="true"
+91-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/armanbalash/.gradle/caches/8.11/transforms/e451ca9f8bcaef61de0da03c405720ec/transformed/profileinstaller-1.3.1/AndroidManifest.xml:38:13-36
+92            android:permission="android.permission.DUMP" >
+92-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/armanbalash/.gradle/caches/8.11/transforms/e451ca9f8bcaef61de0da03c405720ec/transformed/profileinstaller-1.3.1/AndroidManifest.xml:39:13-57
+93            <intent-filter>
+93-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/armanbalash/.gradle/caches/8.11/transforms/e451ca9f8bcaef61de0da03c405720ec/transformed/profileinstaller-1.3.1/AndroidManifest.xml:40:13-42:29
+94                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+94-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/armanbalash/.gradle/caches/8.11/transforms/e451ca9f8bcaef61de0da03c405720ec/transformed/profileinstaller-1.3.1/AndroidManifest.xml:41:17-91
+94-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/armanbalash/.gradle/caches/8.11/transforms/e451ca9f8bcaef61de0da03c405720ec/transformed/profileinstaller-1.3.1/AndroidManifest.xml:41:25-88
+95            </intent-filter>
+96            <intent-filter>
+96-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/armanbalash/.gradle/caches/8.11/transforms/e451ca9f8bcaef61de0da03c405720ec/transformed/profileinstaller-1.3.1/AndroidManifest.xml:43:13-45:29
+97                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+97-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/armanbalash/.gradle/caches/8.11/transforms/e451ca9f8bcaef61de0da03c405720ec/transformed/profileinstaller-1.3.1/AndroidManifest.xml:44:17-85
+97-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/armanbalash/.gradle/caches/8.11/transforms/e451ca9f8bcaef61de0da03c405720ec/transformed/profileinstaller-1.3.1/AndroidManifest.xml:44:25-82
+98            </intent-filter>
+99            <intent-filter>
+99-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/armanbalash/.gradle/caches/8.11/transforms/e451ca9f8bcaef61de0da03c405720ec/transformed/profileinstaller-1.3.1/AndroidManifest.xml:46:13-48:29
+100                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+100-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/armanbalash/.gradle/caches/8.11/transforms/e451ca9f8bcaef61de0da03c405720ec/transformed/profileinstaller-1.3.1/AndroidManifest.xml:47:17-88
+100-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/armanbalash/.gradle/caches/8.11/transforms/e451ca9f8bcaef61de0da03c405720ec/transformed/profileinstaller-1.3.1/AndroidManifest.xml:47:25-85
+101            </intent-filter>
+102            <intent-filter>
+102-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/armanbalash/.gradle/caches/8.11/transforms/e451ca9f8bcaef61de0da03c405720ec/transformed/profileinstaller-1.3.1/AndroidManifest.xml:49:13-51:29
+103                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+103-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/armanbalash/.gradle/caches/8.11/transforms/e451ca9f8bcaef61de0da03c405720ec/transformed/profileinstaller-1.3.1/AndroidManifest.xml:50:17-95
+103-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/armanbalash/.gradle/caches/8.11/transforms/e451ca9f8bcaef61de0da03c405720ec/transformed/profileinstaller-1.3.1/AndroidManifest.xml:50:25-92
+104            </intent-filter>
+105        </receiver>
+106    </application>
+107
+108</manifest>

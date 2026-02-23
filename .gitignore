@@ -1,0 +1,12 @@
+# Build outputs
+  android/app/src/main/jniLibs/
+  android/.gradle/
+  android/app/build/
+  android/build/
+  android/local.properties
+
+  # Go binaries
+  android-client
+
+  # OS
+  .DS_Store
