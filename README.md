@@ -1,180 +1,149 @@
 <div align="center">
   <img src="https://fox-fig.github.io/phoenix/logo.png" alt="Phoenix Logo" width="160" height="160">
-  <h1>Phoenix — Android Client</h1>
+  <h1>Phoenix Android</h1>
   <p>
     <img src="https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white" alt="Android 8.0+">
     <img src="https://img.shields.io/badge/Arch-ARM64-informational" alt="ARM64">
     <img src="https://img.shields.io/badge/Kotlin-Jetpack%20Compose-7F52FF?logo=kotlin&logoColor=white" alt="Kotlin">
-    <img src="https://img.shields.io/badge/License-GPLv2-blue.svg" alt="License">
+    <img src="https://img.shields.io/badge/License-GPLv2-blue.svg" alt="GPLv2">
+    <a href="https://github.com/arta666/phoenix-android/releases"><img src="https://img.shields.io/github/v/release/arta666/phoenix-android" alt="Latest Release"></a>
   </p>
   <p>
-    Native Android client for <a href="https://github.com/Fox-Fig/phoenix"><strong>Phoenix</strong></a> — a DPI-resistant censorship circumvention tool.<br>
-    Route your device traffic through a Phoenix server without root.
+    Native Android client for <a href="https://github.com/Fox-Fig/phoenix"><strong>Phoenix</strong></a><br>
+    Bypass censorship and DPI — no root required.
   </p>
+
+  [📦 Download APK](https://github.com/arta666/phoenix-android/releases) · [🖥️ Main Project](https://github.com/Fox-Fig/phoenix) · [📚 Documentation](https://Fox-Fig.github.io/phoenix/)
+
+</div>
+
+---
+
+## Screenshots
+
+<div align="center">
+  <img src="screenshots/home.jpg" alt="Home Screen" width="270">
+  &nbsp;&nbsp;&nbsp;
+  <img src="screenshots/settings.jpg" alt="Settings Screen" width="270">
 </div>
 
 ---
 
 ## What is Phoenix?
 
-[Phoenix](https://github.com/Fox-Fig/phoenix) is a high-performance tunneling tool that bypasses Deep Packet Inspection (DPI) and severe network censorship by wrapping your traffic inside **HTTP/2** connections. It supports SOCKS5, Shadowsocks, and SSH proxying with mutual Ed25519 authentication and TLS.
+[Phoenix](https://github.com/Fox-Fig/phoenix) is a high-performance tunneling tool built by the [FoxFig Team](https://t.me/FoxFig) that bypasses Deep Packet Inspection (DPI) and severe network censorship by wrapping traffic inside **HTTP/2** connections. It supports mTLS mutual authentication, one-way TLS, and h2c for CDN deployments.
 
-This Android client connects your phone to an existing Phoenix server and proxies your traffic through it — **no root required**.
+This repository is the **official Android client** for Phoenix. It connects your Android device to a Phoenix server and routes your traffic through it — no root required.
+
+> **Need a server?** See the [Phoenix server setup guide](https://Fox-Fig.github.io/phoenix/guide/getting-started).
 
 ---
 
 ## Features
 
-- **SOCKS5 Proxy mode** — starts a local proxy on `127.0.0.1:10080`; configure individual apps to use it
-- **VPN mode** — routes *all* device traffic transparently through the tunnel using Android's `VpnService` API; no per-app configuration needed
-- **mTLS authentication** — Ed25519 mutual authentication; generate client keys directly on-device
-- **One-way TLS** — verify the server's identity without client certificates
-- **h2c mode** — cleartext HTTP/2 for deployments behind a CDN that provides TLS termination
-- **Live connection logs** — swipe from the left edge or tap the debug icon to inspect the tunnel log in real time
-- **Runs in the background** — Android Foreground Service survives Doze mode and app minimization
-- **No root required** — both SOCKS5 and VPN modes work on standard unrooted devices
+- **VPN mode** — routes *all* device traffic transparently via Android `VpnService` + tun2socks; no per-app setup needed
+- **SOCKS5 proxy mode** — local proxy on `127.0.0.1:10080`; configure individual apps manually
+- **mTLS authentication** — Ed25519 mutual auth with on-device key generation; no key ever leaves your device
+- **One-way TLS** — pin the server certificate without client auth
+- **h2c mode** — cleartext HTTP/2 for CDN-fronted deployments
+- **Live debug logs** — swipe from the left edge or tap the bug icon to inspect tunnel output in real time
+- **Background service** — Foreground Service survives Doze mode and app minimization
+- **No root required**
 
 ---
 
 ## Requirements
 
-| Requirement | Minimum |
+| | Minimum |
 |---|---|
-| Android version | 8.0 (API 26) |
-| CPU architecture | ARM64 (arm64-v8a) |
-| Phoenix server | Any version with SOCKS5 or mTLS support |
+| Android | 8.0 (API 26) |
+| Architecture | ARM64 (arm64-v8a) |
+| Phoenix server | Any released version |
 | Root | Not required |
 
 ---
 
 ## Installation
 
-### Option A — Download APK (recommended)
+### Download APK
 
-1. Go to the [Releases page](https://github.com/Fox-Fig/phoenix/releases)
+1. Go to the [Releases page](https://github.com/arta666/phoenix-android/releases)
 2. Download `phoenix-android-<version>.apk`
-3. On your Android device: **Settings → Security → Install unknown apps** and allow your browser or file manager to install APKs
+3. On your device: **Settings → Security → Install unknown apps** → allow your browser or file manager
 4. Open the downloaded file and tap **Install**
 
-> **Note:** Your device may show a warning about installing apps from unknown sources. This is normal for sideloaded APKs not distributed through the Play Store.
-
-### Option B — Build from source
-
-See [Build from source](#build-from-source) below.
+> Android may warn about installing from unknown sources — this is expected for APKs distributed outside the Play Store.
 
 ---
 
 ## Quick Start
 
-### Step 1 — Set up a Phoenix server
+### 1. Set up a Phoenix server
 
-You need a running Phoenix server before using this app. Follow the [server setup guide](https://Fox-Fig.github.io/phoenix/guide/getting-started) to install and configure one on your VPS.
+You need a running Phoenix server on a VPS. Download the server binary from the [Phoenix releases page](https://github.com/Fox-Fig/phoenix/releases) and follow the [server setup guide](https://Fox-Fig.github.io/phoenix/guide/getting-started).
 
-### Step 2 — Configure the Android client
+### 2. Configure the app
 
-Open the app and tap **Config** in the bottom navigation bar.
+Open the app → tap **Config** in the bottom bar.
 
-#### Server address
-Enter your server's address in `host:port` format, for example:
-```
-203.0.113.42:8443
-```
-
-#### TLS / Authentication mode
-
-| Field | When to fill |
+| Field | What to enter |
 |---|---|
-| **Server public key** | Fill this to enable mTLS or one-way TLS. Leave blank for h2c (cleartext). |
-| **mTLS toggle** | Enable to send your client certificate. Requires key generation (see below). |
+| **Server address** | Your server's `host:port`, e.g. `203.0.113.42:8443` |
+| **Server public key** | From `cat server.pub` on your server. Leave blank for h2c. |
+| **mTLS toggle** | Enable if your server uses `authorized_clients` |
 
-To find your server's public key, run on the server:
-```bash
-./phoenix-server -gen-keys     # generates server.pub and server.key
-cat server.pub                  # copy this value into the app
-```
+### 3. Generate client keys (mTLS only)
 
-### Step 3 — Generate client keys (mTLS only)
-
-If your server requires mutual authentication (`authorized_clients` is set in `server.toml`):
-
-1. In the **Config** screen, enable the **mTLS** toggle
-2. Tap **Generate Keys** — the app creates an Ed25519 keypair stored securely on-device
-3. A dialog shows your **client public key** — copy it
-4. On your server, add it to `server.toml`:
+1. Enable the **mTLS** toggle in Config
+2. Tap **Generate Keys** — an Ed25519 keypair is created and stored on-device
+3. Copy your **client public key** from the dialog
+4. Add it to your server's `server.toml`:
    ```toml
-   authorized_clients = [
-     "your-client-public-key-here"
-   ]
+   authorized_clients = ["your-client-public-key"]
    ```
 5. Restart the Phoenix server
 
-You can view your public key again at any time by tapping the eye icon next to the key field.
+### 4. Choose a connection mode
 
-### Step 4 — Choose a connection mode
+Tap **Settings** in the bottom bar:
 
-Tap **Settings** in the bottom navigation bar and choose:
+| Mode | Best for |
+|---|---|
+| **VPN** | Full-device protection — all apps tunneled automatically |
+| **SOCKS5 Proxy** | Tunnel only specific apps |
 
-| Mode | How it works | Use when |
-|---|---|---|
-| **SOCKS5 Proxy** | Local proxy on `127.0.0.1:10080`; you configure each app manually | You only need specific apps tunneled |
-| **VPN mode** | All device traffic is routed through the tunnel automatically | You want full-device protection |
+### 5. Connect
 
-### Step 5 — Connect
-
-Go back to the **Home** tab and tap **Connect**.
-
-- The status card turns **green** when the tunnel is active
-- Connection mode, uptime, and local proxy address are shown in the Connection Info card below
+Go to **Home** → tap **Connect**. The status card turns green when the tunnel is active.
 
 ---
 
-## Using SOCKS5 Proxy Mode
+## SOCKS5 Proxy Mode — App Configuration
 
-When in SOCKS5 mode, the app does **not** automatically intercept all traffic. You need to configure each app or browser to use the local proxy.
+When using SOCKS5 mode, configure your apps manually:
 
-**Proxy settings to use:**
 ```
 Host:  127.0.0.1
 Port:  10080
 Type:  SOCKS5
 ```
 
-### Browser (Firefox for Android)
-1. Settings → General → Network Settings → Manual proxy configuration
-2. SOCKS Host: `127.0.0.1`, Port: `10080`, select **SOCKS v5**
-3. Check **Proxy DNS when using SOCKS v5**
+**Firefox for Android:** Settings → Network Settings → Manual proxy → SOCKS5 Host `127.0.0.1` Port `10080` → enable *Proxy DNS over SOCKS5*
 
-### System-wide (via third-party apps)
-Apps like **SocksDroid** or **Shadowsocks** can forward all system traffic through a SOCKS5 proxy.
-
-Alternatively, switch to **VPN mode** (see Settings) — it does this automatically.
-
----
-
-## Using VPN Mode
-
-VPN mode routes **all device traffic** through the Phoenix tunnel with no per-app configuration. When you tap Connect in VPN mode:
-
-1. Android shows a one-time VPN permission dialog — tap **OK**
-2. A VPN key icon appears in your status bar confirming the tunnel is active
-3. The Phoenix app itself is excluded from the VPN to prevent routing loops
-
-To stop tunneling, open the app and tap **Disconnect**, or pull down the notification and tap Stop.
+For system-wide coverage without root, use **VPN mode** instead.
 
 ---
 
 ## Debug Logs
 
-To see the raw tunnel output:
-- **Swipe right** from the left edge of the Home screen, or
-- Tap the **bug icon** (top-left of the Home screen)
+- **Swipe right** from the left edge of the Home screen, or tap the **bug icon** (top-right of the header)
 
-The log panel shows color-coded output:
-- 🟢 Green — normal tunnel messages
-- 🟡 Yellow — commands sent to the Go process
+Color coding:
+- 🟢 Green — tunnel messages
+- 🟡 Yellow — process commands
 - 🔴 Red — errors
 
-Tap **Copy** to share logs when reporting issues.
+Use **Copy** to attach logs when reporting issues.
 
 ---
 
@@ -183,37 +152,31 @@ Tap **Copy** to share logs when reporting issues.
 ### Prerequisites
 
 - [Go 1.24+](https://go.dev/dl/)
-- [Android Studio](https://developer.android.com/studio) (Ladybug or newer) with SDK 35
-- JDK 17
+- [Android Studio](https://developer.android.com/studio) (Ladybug or newer) · SDK 35 · JDK 17
 
-### 1. Clone the repository
+### Clone
 
 ```bash
-git clone https://github.com/Fox-Fig/phoenix.git
-cd phoenix
+git clone https://github.com/arta666/phoenix-android.git
+cd phoenix-android
 ```
 
-### 2. Build the Go binary for Android ARM64
+### Build the Go binary
 
 ```bash
 make android-client
 ```
 
-This cross-compiles `cmd/android-client/main.go` for `linux/arm64` and places the output at:
+Compiles `cmd/android-client/main.go` for `linux/arm64` and outputs to:
 ```
 android/app/src/main/jniLibs/arm64-v8a/libphoenixclient.so
 ```
 
-### 3. Build the APK
+### Build the APK
 
 ```bash
 cd android
 ./gradlew assembleDebug
-```
-
-The debug APK is at:
-```
-android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
 Install on a connected device:
@@ -226,60 +189,67 @@ adb install android/app/build/outputs/apk/debug/app-debug.apk
 ## Architecture
 
 ```
-Android UI (Kotlin / Jetpack Compose)
-  └── HomeScreen / ConfigScreen / SettingsScreen
-       └── HomeViewModel / ConfigViewModel
-            └── PhoenixService (SOCKS5 mode)
-            └── PhoenixVpnService (VPN mode)
-                 └── libphoenixclient.so  ← Go binary (cmd/android-client/)
-                      ├── SOCKS5 listener  (pkg/adapter/socks5)
-                      ├── HTTP/2 transport (pkg/transport/client.go)
-                      └── tun2socks engine (VPN mode only)
+Android UI  (Kotlin / Jetpack Compose / Hilt / MVVM)
+  ├── HomeScreen · ConfigScreen · SettingsScreen
+  └── PhoenixService (SOCKS5) / PhoenixVpnService (VPN)
+       └── libphoenixclient.so   ← Go binary
+            ├── SOCKS5 listener      pkg/adapter/socks5
+            ├── HTTP/2 transport     pkg/transport
+            └── tun2socks engine     (VPN mode only)
 ```
 
-**Key design decisions:**
+**Key technical decisions:**
 
-- The Go binary ships as `libphoenixclient.so` inside `jniLibs/arm64-v8a/` so Android places it in the app's `nativeLibraryDir`, which is always executable (bypasses the W^X policy that blocks executing files extracted from assets)
-- VPN mode uses [tun2socks](https://github.com/xjasonlyu/tun2socks) to forward TUN device traffic into the local SOCKS5 listener
-- The TUN file descriptor is passed from Kotlin to the Go process via the `-tun-fd` flag using `SCM_RIGHTS` fd passing
-- Service events (connected, disconnected, error, log lines) are delivered via an in-process `SharedFlow` bus (`ServiceEvents.kt`) — more reliable than Android broadcasts on Samsung devices
-
----
-
-## Limitations
-
-| Limitation | Notes |
-|---|---|
-| ARM64 only | The bundled Go binary targets `linux/arm64`. arm32 support requires a separate build. |
-| Shadowsocks mode | Not yet available in the Android client. SOCKS5 and mTLS/h2c work. |
-| CDN / system TLS mode | Not yet exposed in the Android UI. |
-| h2c to external hosts | Android 9+ blocks cleartext HTTP to external hosts by default. h2c mode works only with a CDN that terminates TLS in front of your server. |
+- Go binary ships as `libphoenixclient.so` in `jniLibs/arm64-v8a/` — Android places it in `nativeLibraryDir` which is always executable, bypassing the W^X policy that blocks running executables extracted from assets
+- VPN mode: Kotlin creates a TUN interface via `VpnService.Builder`, sends the TUN file descriptor to Go over an abstract Unix socket using `SCM_RIGHTS`, then [tun2socks](https://github.com/xjasonlyu/tun2socks) routes all TUN packets through the local SOCKS5 listener
+- Service events use an in-process `SharedFlow` bus instead of Android broadcasts — required for reliability on Samsung devices
 
 ---
 
 ## Troubleshooting
 
 **"client didn't provide a certificate"**
-→ mTLS is enabled on the server but your client keys are not set up. Go to Config → enable mTLS → Generate Keys → add your public key to `authorized_clients` on the server.
+→ mTLS is on but keys aren't configured. Config → enable mTLS → Generate Keys → add public key to server's `authorized_clients` → restart server.
 
 **"Connection timed out after 20 s"**
-→ The server address is wrong, the server is not running, or a firewall is blocking the port. Check the debug logs for details.
+→ Wrong server address, server is offline, or port is blocked by a firewall. Check the debug logs.
 
-**VPN permission dialog does not appear**
-→ The app may already have VPN permission from a previous session. If you uninstalled and reinstalled the app, Android may have revoked it — go to Settings → Apps → Phoenix → Permissions and check.
+**VPN permission dialog never appears**
+→ Go to Settings → Apps → Phoenix → Permissions and verify VPN permission is not permanently denied.
 
-**App crashes on launch**
-→ Ensure your device is ARM64. The binary will not run on x86 emulators or arm32 devices.
+**App crashes immediately**
+→ Your device is not ARM64. The binary does not run on x86 emulators or 32-bit devices.
+
+---
+
+## Limitations
+
+| | |
+|---|---|
+| Architecture | ARM64 only (arm64-v8a) |
+| Shadowsocks | Not yet available on Android |
+| CDN / system TLS | Not yet exposed in the Android UI |
+| h2c to external hosts | Android 9+ blocks cleartext to non-localhost hosts by default |
+
+---
+
+## Related
+
+| | |
+|---|---|
+| 🖥️ **Phoenix core** (server + desktop client) | [Fox-Fig/phoenix](https://github.com/Fox-Fig/phoenix) |
+| 📚 **Documentation** | [fox-fig.github.io/phoenix](https://Fox-Fig.github.io/phoenix/) |
+| 💬 **Community** | [t.me/FoxFig](https://t.me/FoxFig) |
 
 ---
 
 ## License
 
-This project is licensed under the [GPLv2 License](../LICENSE).
+[GPLv2](LICENSE)
 
 ---
 
 <div align="center">
-  Part of the <a href="https://github.com/Fox-Fig/phoenix">Phoenix project</a> — made with ❤️ by <a href="https://t.me/FoxFig">FoxFig Team</a><br>
+  Built on top of <a href="https://github.com/Fox-Fig/phoenix">Phoenix</a> by the FoxFig Team<br>
   Dedicated to all people of Iran 🇮🇷
 </div>
