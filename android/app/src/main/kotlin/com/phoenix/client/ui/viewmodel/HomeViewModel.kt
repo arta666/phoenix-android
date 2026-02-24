@@ -5,11 +5,13 @@ import android.content.Intent
 import android.net.VpnService
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.phoenix.client.BuildConfig
 import com.phoenix.client.domain.model.ClientConfig
 import com.phoenix.client.domain.repository.ConfigRepository
 import com.phoenix.client.service.PhoenixService
 import com.phoenix.client.service.PhoenixVpnService
 import com.phoenix.client.service.ServiceEvents
+import com.phoenix.client.util.UpdateChecker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -40,6 +42,8 @@ data class HomeUiState(
     val logs: List<String> = emptyList(),
     /** Non-null when we need the UI to launch the VPN permission intent. */
     val vpnPermissionIntent: Intent? = null,
+    /** Non-null when a newer release is available on GitHub. */
+    val updateAvailableVersion: String? = null,
 )
 
 @HiltViewModel
@@ -101,6 +105,18 @@ class HomeViewModel @Inject constructor(
                 }
             }
         }
+
+        // Check for updates on launch.
+        viewModelScope.launch {
+            val latest = UpdateChecker.getLatestVersion()
+            if (latest != null && UpdateChecker.isNewer(latest, BuildConfig.VERSION_NAME)) {
+                _uiState.update { it.copy(updateAvailableVersion = latest) }
+            }
+        }
+    }
+
+    fun dismissUpdateBanner() {
+        _uiState.update { it.copy(updateAvailableVersion = null) }
     }
 
     // ── Public actions ─────────────────────────────────────────────────────────
