@@ -23,9 +23,14 @@ import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -58,6 +63,7 @@ import com.phoenix.client.ui.viewmodel.ConfigViewModel
 /** Tracks which key action is waiting for overwrite confirmation. */
 private enum class PendingKeyAction { GENERATE, PICK_FILE }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConfigScreen(viewModel: ConfigViewModel = hiltViewModel()) {
     val savedConfig by viewModel.config.collectAsState()
@@ -70,6 +76,12 @@ fun ConfigScreen(viewModel: ConfigViewModel = hiltViewModel()) {
     var serverPubKey by remember(savedConfig.serverPubKey) { mutableStateOf(savedConfig.serverPubKey) }
     var localSocksAddr by remember(savedConfig.localSocksAddr) { mutableStateOf(savedConfig.localSocksAddr) }
     var enableUdp by remember(savedConfig.enableUdp) { mutableStateOf(savedConfig.enableUdp) }
+
+    var authToken by remember(savedConfig.authToken) { mutableStateOf(savedConfig.authToken) }
+    var tlsMode by remember(savedConfig.tlsMode) { mutableStateOf(savedConfig.tlsMode) }
+    var tlsModeExpanded by remember { mutableStateOf(false) }
+    var fingerprint by remember(savedConfig.fingerprint) { mutableStateOf(savedConfig.fingerprint) }
+    var fingerprintExpanded by remember { mutableStateOf(false) }
 
     // mTLS state — ON when a private key file is configured
     var useMtls by remember(savedConfig.privateKeyFile) {
@@ -216,6 +228,90 @@ fun ConfigScreen(viewModel: ConfigViewModel = hiltViewModel()) {
                 "• Empty → h2c mode (cleartext HTTP/2, for CDN-fronted deployments)\n" +
                 "• Set → TLS mode (One-Way TLS or mTLS)"
         )
+
+        Spacer(Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = authToken,
+            onValueChange = { authToken = it },
+            label = { Text("Auth Token") },
+            placeholder = { Text("Shared secret (optional)") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        FieldDescription("Token-based authentication. Must match auth_token on the server. Leave empty if not used.")
+
+        Spacer(Modifier.height(16.dp))
+
+        val tlsModeLabels = mapOf(
+            "" to "Phoenix Pinning (default)",
+            "system" to "System CA — CDN / Cloudflare",
+            "insecure" to "Insecure — accept any certificate",
+        )
+        ExposedDropdownMenuBox(
+            expanded = tlsModeExpanded,
+            onExpandedChange = { tlsModeExpanded = it },
+        ) {
+            OutlinedTextField(
+                value = tlsModeLabels[tlsMode] ?: tlsMode,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("TLS Mode") },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = tlsModeExpanded) },
+                modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable),
+            )
+            ExposedDropdownMenu(
+                expanded = tlsModeExpanded,
+                onDismissRequest = { tlsModeExpanded = false },
+            ) {
+                tlsModeLabels.forEach { (value, label) ->
+                    DropdownMenuItem(
+                        text = { Text(label) },
+                        onClick = { tlsMode = value; tlsModeExpanded = false },
+                    )
+                }
+            }
+        }
+        FieldDescription(
+            "• Phoenix Pinning — verify server by Ed25519 public key (default)\n" +
+                "• System CA — trust OS certificate store (for CDN / Cloudflare setups)\n" +
+                "• Insecure — skip verification (self-signed cert, no key needed)"
+        )
+
+        Spacer(Modifier.height(16.dp))
+
+        val fingerprintLabels = mapOf(
+            "" to "Default (no spoofing)",
+            "chrome" to "Chrome",
+            "firefox" to "Firefox",
+            "safari" to "Safari",
+            "random" to "Random",
+        )
+        ExposedDropdownMenuBox(
+            expanded = fingerprintExpanded,
+            onExpandedChange = { fingerprintExpanded = it },
+        ) {
+            OutlinedTextField(
+                value = fingerprintLabels[fingerprint] ?: fingerprint,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("TLS Fingerprint") },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = fingerprintExpanded) },
+                modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable),
+            )
+            ExposedDropdownMenu(
+                expanded = fingerprintExpanded,
+                onDismissRequest = { fingerprintExpanded = false },
+            ) {
+                fingerprintLabels.forEach { (value, label) ->
+                    DropdownMenuItem(
+                        text = { Text(label) },
+                        onClick = { fingerprint = value; fingerprintExpanded = false },
+                    )
+                }
+            }
+        }
+        FieldDescription("Spoof the TLS ClientHello to bypass DPI fingerprinting. Chrome is recommended when enabled.")
 
         Spacer(Modifier.height(16.dp))
 
@@ -447,6 +543,9 @@ fun ConfigScreen(viewModel: ConfigViewModel = hiltViewModel()) {
                         clientPublicKey = if (useMtls) savedConfig.clientPublicKey else "",
                         localSocksAddr = localSocksAddr.trim(),
                         enableUdp = enableUdp,
+                        authToken = authToken.trim(),
+                        tlsMode = tlsMode,
+                        fingerprint = fingerprint,
                     ),
                 )
             },

@@ -18,6 +18,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	utls "github.com/refraction-networking/utls"
 	"golang.org/x/net/http2"
 )
 
@@ -38,15 +39,90 @@ func NewClient(cfg *config.ClientConfig) *Client {
 	}
 
 	// Initialize scheme based on config
-	if cfg.TLSMode == "system" || cfg.PrivateKeyPath != "" || cfg.ServerPublicKey != "" {
+	if cfg.TLSMode == "system" || cfg.TLSMode == "insecure" || cfg.PrivateKeyPath != "" || cfg.ServerPublicKey != "" {
 		c.Scheme = "https"
 	} else {
 		c.Scheme = "http"
 	}
 
+	// Log security status
+	c.logSecurityMode()
+
 	// Initialize the first HTTP client
 	c.httpClient = c.createHTTPClient()
 	return c
+}
+
+// dialWithFingerprint dials a TLS connection using uTLS to spoof a browser fingerprint.
+// If fingerprint is empty, falls back to standard Go TLS.
+// Always negotiates HTTP/2 (ALPN "h2") regardless of fingerprint mode.
+func dialWithFingerprint(network, addr string, tlsCfg *tls.Config, fingerprint string) (net.Conn, error) {
+	// Ensure ALPN h2 is set (http2.Transport normally does this, but custom DialTLS bypasses it)
+	if tlsCfg == nil {
+		tlsCfg = &tls.Config{}
+	}
+	if len(tlsCfg.NextProtos) == 0 {
+		cloned := tlsCfg.Clone()
+		cloned.NextProtos = []string{"h2"}
+		tlsCfg = cloned
+	}
+
+	if fingerprint == "" {
+		// Standard TLS — no spoofing
+		return tls.Dial(network, addr, tlsCfg)
+	}
+
+	rawConn, err := net.Dial(network, addr)
+	if err != nil {
+		return nil, err
+	}
+
+	// Extract host for SNI
+	host, _, _ := net.SplitHostPort(addr)
+
+	utlsCfg := &utls.Config{
+		ServerName:         host,
+		InsecureSkipVerify: tlsCfg.InsecureSkipVerify, //nolint:gosec
+		NextProtos:         tlsCfg.NextProtos,
+	}
+	if tlsCfg.RootCAs != nil {
+		utlsCfg.RootCAs = tlsCfg.RootCAs
+	}
+
+	uConn := utls.UClient(rawConn, utlsCfg, pickHelloID(fingerprint))
+	if err := uConn.Handshake(); err != nil {
+		rawConn.Close()
+		return nil, fmt.Errorf("utls handshake failed: %v", err)
+	}
+
+	// If caller provided custom VerifyPeerCertificate, run it now
+	if tlsCfg.VerifyPeerCertificate != nil {
+		state := uConn.ConnectionState()
+		rawCerts := make([][]byte, len(state.PeerCertificates))
+		for i, c := range state.PeerCertificates {
+			rawCerts[i] = c.Raw
+		}
+		if err := tlsCfg.VerifyPeerCertificate(rawCerts, nil); err != nil {
+			uConn.Close()
+			return nil, err
+		}
+	}
+
+	return uConn, nil
+}
+
+// pickHelloID maps a fingerprint name to a uTLS ClientHelloID.
+func pickHelloID(fp string) utls.ClientHelloID {
+	switch fp {
+	case "firefox":
+		return utls.HelloFirefox_Auto
+	case "safari":
+		return utls.HelloSafari_Auto
+	case "random":
+		return utls.HelloRandomized
+	default: // "chrome" or anything else
+		return utls.HelloChrome_Auto
+	}
 }
 
 // createHTTPClient creates a fresh http.Client based on configuration.
@@ -55,9 +131,25 @@ func (c *Client) createHTTPClient() *http.Client {
 
 	// System TLS Mode (for CDN like Cloudflare)
 	if c.Config.TLSMode == "system" {
-		log.Println("Creating SYSTEM transport (TLS via System CA)")
+		log.Println("[Transport] Creating SYSTEM TLS transport (System CA verification)")
+		baseTLS := &tls.Config{}
 		tr = &http2.Transport{
-			TLSClientConfig:            &tls.Config{},
+			DialTLS: func(network, addr string, cfg *tls.Config) (net.Conn, error) {
+				return dialWithFingerprint(network, addr, baseTLS, c.Config.Fingerprint)
+			},
+			StrictMaxConcurrentStreams: true,
+			ReadIdleTimeout:            0,
+			PingTimeout:                5 * time.Second,
+		}
+	} else if c.Config.TLSMode == "insecure" {
+		// Insecure TLS Mode: HTTPS but skip certificate verification.
+		// Use for direct connections to servers with self-signed TLS certs.
+		log.Println("[Transport] Creating INSECURE TLS transport (cert verification DISABLED)")
+		baseTLS := &tls.Config{InsecureSkipVerify: true} //nolint:gosec
+		tr = &http2.Transport{
+			DialTLS: func(network, addr string, cfg *tls.Config) (net.Conn, error) {
+				return dialWithFingerprint(network, addr, baseTLS, c.Config.Fingerprint)
+			},
 			StrictMaxConcurrentStreams: true,
 			ReadIdleTimeout:            0,
 			PingTimeout:                5 * time.Second,
@@ -113,15 +205,17 @@ func (c *Client) createHTTPClient() *http.Client {
 		}
 
 		tr = &http2.Transport{
-			TLSClientConfig:            tlsConfig,
+			DialTLS: func(network, addr string, _ *tls.Config) (net.Conn, error) {
+				return dialWithFingerprint(network, addr, tlsConfig, c.Config.Fingerprint)
+			},
 			StrictMaxConcurrentStreams: true,
 			ReadIdleTimeout:            0,
 			PingTimeout:                5 * time.Second,
 		}
 
 	} else {
-		// INSECURE MODE (h2c)
-		log.Println("Creating INSECURE transport (h2c)")
+		// CLEARTEXT MODE (h2c)
+		log.Println("[Transport] Creating CLEARTEXT transport (h2c)")
 		tr = &http2.Transport{
 			AllowHTTP: true,
 			DialTLS: func(network, addr string, cfg *tls.Config) (net.Conn, error) {
@@ -134,6 +228,33 @@ func (c *Client) createHTTPClient() *http.Client {
 	}
 
 	return &http.Client{Transport: tr}
+}
+
+// logSecurityMode prints a human-readable security status at startup.
+func (c *Client) logSecurityMode() {
+	cfg := c.Config
+	tokenStatus := "disabled"
+	if cfg.AuthToken != "" {
+		tokenStatus = "ENABLED"
+	}
+
+	fpStatus := "disabled"
+	if cfg.Fingerprint != "" {
+		fpStatus = cfg.Fingerprint
+	}
+
+	switch {
+	case cfg.PrivateKeyPath != "" && len(cfg.ServerPublicKey) > 0:
+		log.Printf("Security Mode: mTLS (Ed25519 key pinning) | Token Auth: %s | Fingerprint: %s", tokenStatus, fpStatus)
+	case cfg.PrivateKeyPath != "" || cfg.ServerPublicKey != "":
+		log.Printf("Security Mode: ONE-WAY TLS (Ed25519 key pinning) | Token Auth: %s | Fingerprint: %s", tokenStatus, fpStatus)
+	case cfg.TLSMode == "system":
+		log.Printf("Security Mode: SYSTEM TLS (System CA — use with CDN/Cloudflare) | Token Auth: %s | Fingerprint: %s", tokenStatus, fpStatus)
+	case cfg.TLSMode == "insecure":
+		log.Printf("Security Mode: INSECURE TLS (cert verify DISABLED) | Token Auth: %s | Fingerprint: %s", tokenStatus, fpStatus)
+	default:
+		log.Printf("Security Mode: CLEARTEXT h2c (no TLS) | Token Auth: %s", tokenStatus)
+	}
 }
 
 // Dial initiates a tunnel for a specific protocol.
