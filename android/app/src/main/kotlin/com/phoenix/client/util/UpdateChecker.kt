@@ -46,12 +46,18 @@ object UpdateChecker {
         for (check in CHECK_CHAIN) {
             try {
                 val version = check()
-                if (!version.isNullOrBlank()) {
+                if (!version.isNullOrBlank() && isStableRelease(version)) {
                     return@withContext UpdateInfo(version, apkUrl(version))
                 }
             } catch (_: Exception) { }
         }
         null // all sources failed — silently give up
+    }
+
+    private fun isStableRelease(version: String): Boolean {
+        val lower = version.lowercase()
+        return !lower.contains("alpha") && !lower.contains("beta") &&
+               !lower.contains("-rc") && !lower.contains("preview")
     }
 
     fun isNewer(latest: String, current: String): Boolean {

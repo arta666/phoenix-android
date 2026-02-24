@@ -1,1 +1,0 @@
--keep,allowobfuscation,allowshrinking class com.phoenix.client.ui.viewmodel.ConfigViewModel

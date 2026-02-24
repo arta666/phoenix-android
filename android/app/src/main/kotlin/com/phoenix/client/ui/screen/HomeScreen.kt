@@ -16,6 +16,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -35,6 +36,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BugReport
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ButtonDefaults
@@ -140,71 +142,93 @@ fun HomeScreen(
             )
 
             // ── Update banner ───────────────────────────────────────────────────
-            val context = LocalContext.current
             AnimatedVisibility(
                 visible = uiState.updateAvailableVersion != null,
                 enter = expandVertically() + fadeIn(),
                 exit = shrinkVertically() + fadeOut(),
             ) {
-                Surface(
-                    color = PhoenixOrange.copy(alpha = 0.15f),
-                    shape = RoundedCornerShape(12.dp),
+                val downloadProgress = uiState.updateDownloadProgress
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 12.dp),
+                        .padding(top = 12.dp)
+                        .height(IntrinsicSize.Min)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(Color(0xFF1C1600)),
                 ) {
-                    Column(Modifier.padding(horizontal = 16.dp, vertical = 10.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Column(Modifier.weight(1f)) {
+                    // Left accent bar
+                    Box(
+                        modifier = Modifier
+                            .width(4.dp)
+                            .fillMaxHeight()
+                            .background(PhoenixOrange),
+                    )
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(start = 14.dp, end = 8.dp, top = 12.dp, bottom = 12.dp),
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                        ) {
+                            Column {
                                 Text(
-                                    "Update available — ${uiState.updateAvailableVersion}",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = PhoenixOrange,
+                                    "New version available",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = Color.White,
                                 )
-                                Text(
-                                    when (val p = uiState.updateDownloadProgress) {
-                                        null -> "A new version of Phoenix is ready to download"
-                                        else -> "Downloading… ${(p * 100).toInt()}%"
-                                    },
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = PhoenixOrange.copy(alpha = 0.7f),
-                                )
+                                Spacer(Modifier.height(4.dp))
+                                Surface(
+                                    color = PhoenixOrange.copy(alpha = 0.18f),
+                                    shape = RoundedCornerShape(4.dp),
+                                ) {
+                                    Text(
+                                        uiState.updateAvailableVersion ?: "",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = PhoenixOrange,
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                    )
+                                }
                             }
-                            if (uiState.updateDownloadProgress == null) {
-                                TextButton(onClick = viewModel::dismissUpdateBanner) {
-                                    Text("✕", color = PhoenixOrange.copy(alpha = 0.6f))
+                            if (downloadProgress == null) {
+                                IconButton(
+                                    onClick = viewModel::dismissUpdateBanner,
+                                    modifier = Modifier.size(36.dp),
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Close,
+                                        contentDescription = "Dismiss",
+                                        tint = Color.White.copy(alpha = 0.4f),
+                                        modifier = Modifier.size(16.dp),
+                                    )
                                 }
                             }
                         }
 
-                        val downloadProgress = uiState.updateDownloadProgress
+                        Spacer(Modifier.height(12.dp))
+
                         if (downloadProgress != null) {
-                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                "Downloading… ${(downloadProgress * 100).toInt()}%",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.White.copy(alpha = 0.55f),
+                            )
+                            Spacer(Modifier.height(6.dp))
                             LinearProgressIndicator(
                                 progress = { downloadProgress },
                                 modifier = Modifier.fillMaxWidth(),
                                 color = PhoenixOrange,
-                                trackColor = PhoenixOrange.copy(alpha = 0.2f),
+                                trackColor = PhoenixOrange.copy(alpha = 0.15f),
                             )
                         } else {
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                TextButton(
-                                    onClick = viewModel::startUpdate,
-                                ) { Text("Update", color = PhoenixOrange) }
-                                TextButton(
-                                    onClick = {
-                                        context.startActivity(
-                                            Intent(Intent.ACTION_VIEW, Uri.parse(UpdateChecker.RELEASES_URL))
-                                        )
-                                    },
-                                ) { Text("GitHub", color = PhoenixOrange.copy(alpha = 0.7f)) }
-                                TextButton(
-                                    onClick = {
-                                        context.startActivity(
-                                            Intent(Intent.ACTION_VIEW, Uri.parse(UpdateChecker.TELEGRAM_URL))
-                                        )
-                                    },
-                                ) { Text("Telegram", color = PhoenixOrange.copy(alpha = 0.7f)) }
+                            Button(
+                                onClick = viewModel::startUpdate,
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = ButtonDefaults.buttonColors(containerColor = PhoenixOrange),
+                            ) {
+                                Text("Update Now", color = Color.Black)
                             }
                         }
                     }
