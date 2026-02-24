@@ -57,6 +57,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
@@ -73,6 +75,7 @@ import com.phoenix.client.ui.viewmodel.ConnectionMode
 import com.phoenix.client.ui.viewmodel.ConnectionStatus
 import com.phoenix.client.ui.viewmodel.HomeUiState
 import com.phoenix.client.ui.viewmodel.HomeViewModel
+import com.phoenix.client.util.UpdateChecker
 import kotlinx.coroutines.launch
 
 @Composable
@@ -134,6 +137,52 @@ fun HomeScreen(
                 connectionMode = connectionMode,
                 onDebugClick = { scope.launch { drawerState.open() } },
             )
+
+            // ── Update banner ───────────────────────────────────────────────────
+            val context = LocalContext.current
+            AnimatedVisibility(
+                visible = uiState.updateAvailableVersion != null,
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut(),
+            ) {
+                Surface(
+                    color = PhoenixOrange.copy(alpha = 0.15f),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp),
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                "Update available — ${uiState.updateAvailableVersion}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = PhoenixOrange,
+                            )
+                            Text(
+                                "Tap to download the latest release",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = PhoenixOrange.copy(alpha = 0.7f),
+                            )
+                        }
+                        TextButton(
+                            onClick = {
+                                context.startActivity(
+                                    Intent(Intent.ACTION_VIEW, Uri.parse(UpdateChecker.RELEASES_URL))
+                                )
+                            },
+                        ) {
+                            Text("Update", color = PhoenixOrange)
+                        }
+                        TextButton(onClick = viewModel::dismissUpdateBanner) {
+                            Text("✕", color = PhoenixOrange.copy(alpha = 0.6f))
+                        }
+                    }
+                }
+            }
 
             Spacer(Modifier.height(24.dp))
 
