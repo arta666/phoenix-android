@@ -152,33 +152,39 @@ fun HomeScreen(
                         .fillMaxWidth()
                         .padding(top = 12.dp),
                 ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Column(Modifier.weight(1f)) {
-                            Text(
-                                "Update available — ${uiState.updateAvailableVersion}",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = PhoenixOrange,
-                            )
-                            Text(
-                                "Tap to download the latest release",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = PhoenixOrange.copy(alpha = 0.7f),
-                            )
-                        }
-                        TextButton(
-                            onClick = {
-                                context.startActivity(
-                                    Intent(Intent.ACTION_VIEW, Uri.parse(UpdateChecker.RELEASES_URL))
+                    Column(Modifier.padding(horizontal = 16.dp, vertical = 10.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f)) {
+                                Text(
+                                    "Update available — ${uiState.updateAvailableVersion}",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = PhoenixOrange,
                                 )
-                            },
-                        ) {
-                            Text("Update", color = PhoenixOrange)
+                                Text(
+                                    "A new version of Phoenix is ready to download",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = PhoenixOrange.copy(alpha = 0.7f),
+                                )
+                            }
+                            TextButton(onClick = viewModel::dismissUpdateBanner) {
+                                Text("✕", color = PhoenixOrange.copy(alpha = 0.6f))
+                            }
                         }
-                        TextButton(onClick = viewModel::dismissUpdateBanner) {
-                            Text("✕", color = PhoenixOrange.copy(alpha = 0.6f))
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            TextButton(
+                                onClick = {
+                                    context.startActivity(
+                                        Intent(Intent.ACTION_VIEW, Uri.parse(UpdateChecker.RELEASES_URL))
+                                    )
+                                },
+                            ) { Text("GitHub", color = PhoenixOrange) }
+                            TextButton(
+                                onClick = {
+                                    context.startActivity(
+                                        Intent(Intent.ACTION_VIEW, Uri.parse(UpdateChecker.TELEGRAM_URL))
+                                    )
+                                },
+                            ) { Text("Telegram", color = PhoenixOrange) }
                         }
                     }
                 }
