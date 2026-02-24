@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.phoenix.client"
-    android:versionCode="1"
-    android:versionName="1.0.0" >
+    android:versionCode="2"
+    android:versionName="1.1.0" >
 
     <uses-sdk
         android:minSdkVersion="26"
@@ -14,6 +14,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.BIND_VPN_SERVICE" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <permission
         android:name="com.phoenix.client.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
@@ -62,6 +63,15 @@
                 android:value="This VPN service tunnels all device traffic through the Phoenix proxy to bypass censorship." />
         </service>
 
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.phoenix.client.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true" >
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
+        </provider>
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="com.phoenix.client.androidx-startup"

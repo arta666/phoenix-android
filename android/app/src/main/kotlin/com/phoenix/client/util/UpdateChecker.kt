@@ -5,21 +5,28 @@ import kotlinx.coroutines.withContext
 import java.net.HttpURLConnection
 import java.net.URL
 
+data class UpdateInfo(val version: String, val downloadUrl: String)
+
 object UpdateChecker {
 
     const val RELEASES_URL = "https://github.com/dondiego2020/phoenix-android/releases/latest"
     const val TELEGRAM_URL  = "https://t.me/FoxFig"
 
+    private const val REPO = "dondiego2020/phoenix-android"
+
+    private fun apkUrl(version: String) =
+        "https://github.com/$REPO/releases/download/$version/phoenix-android-$version.apk"
+
     // Fallback chain — tried in order until one succeeds
     private val CHECK_CHAIN: List<() -> String?> = listOf(
-        // 1. GitHub API
+        // 1. GitHub API — also provides browser_download_url but we derive it from tag
         {
-            val json = fetch("https://api.github.com/repos/dondiego2020/phoenix-android/releases/latest")
+            val json = fetch("https://api.github.com/repos/$REPO/releases/latest")
             Regex(""""tag_name"\s*:\s*"([^"]+)"""").find(json ?: "")?.groupValues?.get(1)
         },
         // 2. jsDelivr CDN (mirrors GitHub metadata, different domain — harder to block)
         {
-            val json = fetch("https://data.jsdelivr.com/v1/packages/gh/dondiego2020/phoenix-android")
+            val json = fetch("https://data.jsdelivr.com/v1/packages/gh/$REPO")
             Regex(""""version"\s*:\s*"([^"]+)"""").find(json ?: "")?.groupValues?.get(1)
         },
         // 3. Follow GitHub redirect — extract version from Location header (no body needed)
@@ -29,17 +36,19 @@ object UpdateChecker {
             conn.connectTimeout = 6_000
             conn.readTimeout = 6_000
             conn.connect()
-            val location = conn.getHeaderField("Location") // e.g. .../releases/tag/v1.1.0
+            val location = conn.getHeaderField("Location")
             conn.disconnect()
             Regex("""/tag/([^/\s]+)$""").find(location ?: "")?.groupValues?.get(1)
         },
     )
 
-    suspend fun getLatestVersion(): String? = withContext(Dispatchers.IO) {
+    suspend fun getLatestUpdate(): UpdateInfo? = withContext(Dispatchers.IO) {
         for (check in CHECK_CHAIN) {
             try {
                 val version = check()
-                if (!version.isNullOrBlank()) return@withContext version
+                if (!version.isNullOrBlank()) {
+                    return@withContext UpdateInfo(version, apkUrl(version))
+                }
             } catch (_: Exception) { }
         }
         null // all sources failed — silently give up

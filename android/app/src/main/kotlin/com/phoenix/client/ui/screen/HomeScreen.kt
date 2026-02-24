@@ -36,6 +36,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material3.Button
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
@@ -161,30 +162,50 @@ fun HomeScreen(
                                     color = PhoenixOrange,
                                 )
                                 Text(
-                                    "A new version of Phoenix is ready to download",
+                                    when (val p = uiState.updateDownloadProgress) {
+                                        null -> "A new version of Phoenix is ready to download"
+                                        else -> "Downloading… ${(p * 100).toInt()}%"
+                                    },
                                     style = MaterialTheme.typography.bodySmall,
                                     color = PhoenixOrange.copy(alpha = 0.7f),
                                 )
                             }
-                            TextButton(onClick = viewModel::dismissUpdateBanner) {
-                                Text("✕", color = PhoenixOrange.copy(alpha = 0.6f))
+                            if (uiState.updateDownloadProgress == null) {
+                                TextButton(onClick = viewModel::dismissUpdateBanner) {
+                                    Text("✕", color = PhoenixOrange.copy(alpha = 0.6f))
+                                }
                             }
                         }
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            TextButton(
-                                onClick = {
-                                    context.startActivity(
-                                        Intent(Intent.ACTION_VIEW, Uri.parse(UpdateChecker.RELEASES_URL))
-                                    )
-                                },
-                            ) { Text("GitHub", color = PhoenixOrange) }
-                            TextButton(
-                                onClick = {
-                                    context.startActivity(
-                                        Intent(Intent.ACTION_VIEW, Uri.parse(UpdateChecker.TELEGRAM_URL))
-                                    )
-                                },
-                            ) { Text("Telegram", color = PhoenixOrange) }
+
+                        val downloadProgress = uiState.updateDownloadProgress
+                        if (downloadProgress != null) {
+                            Spacer(Modifier.height(8.dp))
+                            LinearProgressIndicator(
+                                progress = { downloadProgress },
+                                modifier = Modifier.fillMaxWidth(),
+                                color = PhoenixOrange,
+                                trackColor = PhoenixOrange.copy(alpha = 0.2f),
+                            )
+                        } else {
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                TextButton(
+                                    onClick = viewModel::startUpdate,
+                                ) { Text("Update", color = PhoenixOrange) }
+                                TextButton(
+                                    onClick = {
+                                        context.startActivity(
+                                            Intent(Intent.ACTION_VIEW, Uri.parse(UpdateChecker.RELEASES_URL))
+                                        )
+                                    },
+                                ) { Text("GitHub", color = PhoenixOrange.copy(alpha = 0.7f)) }
+                                TextButton(
+                                    onClick = {
+                                        context.startActivity(
+                                            Intent(Intent.ACTION_VIEW, Uri.parse(UpdateChecker.TELEGRAM_URL))
+                                        )
+                                    },
+                                ) { Text("Telegram", color = PhoenixOrange.copy(alpha = 0.7f)) }
+                            }
                         }
                     }
                 }

@@ -11,6 +11,7 @@ import com.phoenix.client.domain.repository.ConfigRepository
 import com.phoenix.client.service.PhoenixService
 import com.phoenix.client.service.PhoenixVpnService
 import com.phoenix.client.service.ServiceEvents
+import com.phoenix.client.util.ApkInstaller
 import com.phoenix.client.util.UpdateChecker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -44,6 +45,9 @@ data class HomeUiState(
     val vpnPermissionIntent: Intent? = null,
     /** Non-null when a newer release is available on GitHub. */
     val updateAvailableVersion: String? = null,
+    val updateDownloadUrl: String? = null,
+    /** 0.0–1.0 while downloading, null when idle. */
+    val updateDownloadProgress: Float? = null,
 )
 
 @HiltViewModel
@@ -108,15 +112,37 @@ class HomeViewModel @Inject constructor(
 
         // Check for updates on launch.
         viewModelScope.launch {
-            val latest = UpdateChecker.getLatestVersion()
-            if (latest != null && UpdateChecker.isNewer(latest, BuildConfig.VERSION_NAME)) {
-                _uiState.update { it.copy(updateAvailableVersion = latest) }
+            val info = UpdateChecker.getLatestUpdate()
+            if (info != null && UpdateChecker.isNewer(info.version, BuildConfig.VERSION_NAME)) {
+                _uiState.update {
+                    it.copy(updateAvailableVersion = info.version, updateDownloadUrl = info.downloadUrl)
+                }
+            }
+        }
+    }
+
+    fun startUpdate() {
+        val url     = _uiState.value.updateDownloadUrl ?: return
+        val version = _uiState.value.updateAvailableVersion ?: return
+        if (_uiState.value.updateDownloadProgress != null) return // already downloading
+        viewModelScope.launch {
+            try {
+                _uiState.update { it.copy(updateDownloadProgress = 0f) }
+                ApkInstaller.downloadAndInstall(
+                    context     = getApplication(),
+                    downloadUrl = url,
+                    version     = version,
+                    onProgress  = { p -> _uiState.update { it.copy(updateDownloadProgress = p) } },
+                )
+            } finally {
+                _uiState.update { it.copy(updateDownloadProgress = null) }
             }
         }
     }
 
     fun dismissUpdateBanner() {
-        _uiState.update { it.copy(updateAvailableVersion = null) }
+        if (_uiState.value.updateDownloadProgress != null) return // don't dismiss while downloading
+        _uiState.update { it.copy(updateAvailableVersion = null, updateDownloadUrl = null) }
     }
 
     // ── Public actions ─────────────────────────────────────────────────────────
