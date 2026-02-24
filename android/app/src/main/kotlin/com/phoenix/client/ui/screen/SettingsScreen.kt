@@ -1,5 +1,7 @@
 package com.phoenix.client.ui.screen
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,12 +10,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.OpenInBrowser
 import androidx.compose.material.icons.outlined.Router
+import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.outlined.VpnLock
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -23,10 +29,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.phoenix.client.BuildConfig
 import com.phoenix.client.ui.theme.PhoenixOrange
 import com.phoenix.client.ui.viewmodel.SettingsViewModel
+import com.phoenix.client.util.UpdateChecker
 
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
@@ -89,6 +98,74 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
                 )
             },
         )
+
+        Spacer(Modifier.height(32.dp))
+        HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
+        Spacer(Modifier.height(24.dp))
+
+        // ── About ────────────────────────────────────────────────────────────
+        Text(
+            text = "ABOUT",
+            style = MaterialTheme.typography.labelSmall,
+            color = PhoenixOrange,
+            modifier = Modifier.padding(bottom = 8.dp),
+        )
+
+        val context = LocalContext.current
+        LinkRow(
+            icon = { Icon(Icons.Outlined.OpenInBrowser, contentDescription = null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)) },
+            title = "GitHub",
+            subtitle = "Releases, source code and issue tracker",
+            onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(UpdateChecker.RELEASES_URL))) },
+        )
+
+        Spacer(Modifier.height(4.dp))
+
+        LinkRow(
+            icon = { Icon(Icons.AutoMirrored.Outlined.Send, contentDescription = null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)) },
+            title = "Telegram",
+            subtitle = "Announcements and community support",
+            onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(UpdateChecker.TELEGRAM_URL))) },
+        )
+
+        Spacer(Modifier.height(24.dp))
+
+        Text(
+            text = "Version ${BuildConfig.VERSION_NAME}",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+        )
+    }
+}
+
+@Composable
+private fun LinkRow(
+    icon: @Composable () -> Unit,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+) {
+    Surface(
+        onClick = onClick,
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surface,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            icon()
+            Spacer(Modifier.width(16.dp))
+            Column(Modifier.weight(1f)) {
+                Text(title, style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                )
+            }
+        }
     }
 }
 
