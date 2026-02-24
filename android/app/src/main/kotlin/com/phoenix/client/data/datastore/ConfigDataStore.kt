@@ -28,6 +28,9 @@ class ConfigDataStore @Inject constructor(
         val USE_VPN_MODE = booleanPreferencesKey("use_vpn_mode")
         val LOCAL_SOCKS_ADDR = stringPreferencesKey("local_socks_addr")
         val ENABLE_UDP = booleanPreferencesKey("enable_udp")
+        val AUTH_TOKEN = stringPreferencesKey("auth_token")
+        val TLS_MODE = stringPreferencesKey("tls_mode")
+        val FINGERPRINT = stringPreferencesKey("fingerprint")
     }
 
     val configFlow: Flow<ClientConfig> = context.dataStore.data.map { prefs ->
@@ -39,6 +42,9 @@ class ConfigDataStore @Inject constructor(
             useVpnMode = prefs[Keys.USE_VPN_MODE] ?: false,
             localSocksAddr = prefs[Keys.LOCAL_SOCKS_ADDR] ?: "127.0.0.1:10080",
             enableUdp = prefs[Keys.ENABLE_UDP] ?: false,
+            authToken = prefs[Keys.AUTH_TOKEN] ?: "",
+            tlsMode = prefs[Keys.TLS_MODE] ?: "",
+            fingerprint = prefs[Keys.FINGERPRINT] ?: "",
         )
     }
 
@@ -51,6 +57,9 @@ class ConfigDataStore @Inject constructor(
             prefs[Keys.USE_VPN_MODE] = config.useVpnMode
             prefs[Keys.LOCAL_SOCKS_ADDR] = config.localSocksAddr
             prefs[Keys.ENABLE_UDP] = config.enableUdp
+            prefs[Keys.AUTH_TOKEN] = config.authToken
+            prefs[Keys.TLS_MODE] = config.tlsMode
+            prefs[Keys.FINGERPRINT] = config.fingerprint
         }
     }
 }

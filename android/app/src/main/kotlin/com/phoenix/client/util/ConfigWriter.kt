@@ -31,6 +31,18 @@ object ConfigWriter {
                 appendLine("server_public_key = \"${config.serverPubKey}\"")
             }
 
+            if (config.authToken.isNotBlank()) {
+                appendLine("auth_token = \"${config.authToken}\"")
+            }
+
+            if (config.tlsMode.isNotBlank()) {
+                appendLine("tls_mode = \"${config.tlsMode}\"")
+            }
+
+            if (config.fingerprint.isNotBlank()) {
+                appendLine("fingerprint = \"${config.fingerprint}\"")
+            }
+
             appendLine()
             appendLine("[[inbounds]]")
             appendLine("protocol = \"socks5\"")

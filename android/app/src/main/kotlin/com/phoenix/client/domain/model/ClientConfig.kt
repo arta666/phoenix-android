@@ -22,4 +22,7 @@ data class ClientConfig(
     val useVpnMode: Boolean = false,
     val localSocksAddr: String = "127.0.0.1:10080",
     val enableUdp: Boolean = false,
+    val authToken: String = "",
+    val tlsMode: String = "",        // "" | "system" | "insecure"
+    val fingerprint: String = "",    // "" | "chrome" | "firefox" | "safari" | "random"
 )
