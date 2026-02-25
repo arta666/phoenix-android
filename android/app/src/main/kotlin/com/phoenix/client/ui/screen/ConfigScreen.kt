@@ -83,6 +83,14 @@ fun ConfigScreen(viewModel: ConfigViewModel = hiltViewModel()) {
     var fingerprint by remember(savedConfig.fingerprint) { mutableStateOf(savedConfig.fingerprint) }
     var fingerprintExpanded by remember { mutableStateOf(false) }
 
+    val hasUnsavedChanges = remoteAddr.trim() != savedConfig.remoteAddr ||
+        serverPubKey.trim() != savedConfig.serverPubKey ||
+        localSocksAddr.trim() != savedConfig.localSocksAddr ||
+        enableUdp != savedConfig.enableUdp ||
+        authToken.trim() != savedConfig.authToken ||
+        tlsMode != savedConfig.tlsMode ||
+        fingerprint != savedConfig.fingerprint
+
     // mTLS state — ON when a private key file is configured
     var useMtls by remember(savedConfig.privateKeyFile) {
         mutableStateOf(savedConfig.privateKeyFile.isNotBlank())
@@ -532,6 +540,15 @@ fun ConfigScreen(viewModel: ConfigViewModel = hiltViewModel()) {
         }
 
         Spacer(Modifier.height(32.dp))
+
+        if (hasUnsavedChanges) {
+            Text(
+                text = "You have unsaved changes — press Save before connecting.",
+                style = MaterialTheme.typography.bodySmall,
+                color = PhoenixOrange,
+                modifier = Modifier.padding(bottom = 8.dp),
+            )
+        }
 
         Button(
             onClick = {
