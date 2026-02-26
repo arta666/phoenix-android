@@ -13,48 +13,55 @@ data class GeneratedKeyPair(
 
 /**
  * Generates an Ed25519 keypair by running the bundled Go binary with `-gen-keys`.
- * This guarantees byte-for-byte identical format to all other Phoenix platforms.
+ * Each config gets its own key file named `client-{configId}.private.key` so that
+ * generating a new key for one config never overwrites another config's key.
  */
 object KeyManager {
 
-    private const val PRIVATE_KEY_FILENAME = "client.private.key"
-
     /**
-     * Extracts the binary if needed and runs `-gen-keys -files-dir <filesDir>`.
-     * Parses the structured stdout lines:
-     *   KEY_PATH=/data/.../files/client_private.key
+     * Generates a keypair for [configId] and writes it to
+     * `filesDir/client-{configId}.private.key`.
+     *
+     * Parses structured stdout lines:
+     *   KEY_PATH=/data/.../files/client-<id>.private.key
      *   PUBLIC_KEY=<base64>
      *
      * @throws IllegalStateException if the process fails or output is malformed.
      */
-    suspend fun generateKeys(context: Context): GeneratedKeyPair = withContext(Dispatchers.IO) {
-        val binary = BinaryExtractor.extract(context)
+    suspend fun generateKeys(context: Context, configId: String): GeneratedKeyPair =
+        withContext(Dispatchers.IO) {
+            val binary = BinaryExtractor.extract(context)
+            val keyFileName = keyFileNameFor(configId)
 
-        val process = ProcessBuilder(
-            binary.absolutePath,
-            "-gen-keys",
-            "-files-dir", context.filesDir.absolutePath,
-        )
-            .redirectErrorStream(false)
-            .start()
+            val process = ProcessBuilder(
+                binary.absolutePath,
+                "-gen-keys",
+                "-files-dir", context.filesDir.absolutePath,
+                "-key-name", keyFileName,
+            )
+                .redirectErrorStream(false)
+                .start()
 
-        val stdout = process.inputStream.bufferedReader().readText()
-        val stderr = process.errorStream.bufferedReader().readText()
-        val exitCode = process.waitFor()
+            val stdout = process.inputStream.bufferedReader().readText()
+            val stderr = process.errorStream.bufferedReader().readText()
+            val exitCode = process.waitFor()
 
-        if (exitCode != 0) {
-            throw IllegalStateException("Key generation failed (exit $exitCode): $stderr")
+            if (exitCode != 0) {
+                throw IllegalStateException("Key generation failed (exit $exitCode): $stderr")
+            }
+
+            val publicKey = stdout.lines()
+                .firstOrNull { it.startsWith("PUBLIC_KEY=") }
+                ?.removePrefix("PUBLIC_KEY=")
+                ?.trim()
+                ?: throw IllegalStateException("PUBLIC_KEY not found in binary output:\n$stdout")
+
+            GeneratedKeyPair(
+                privateKeyFile = keyFileName,
+                publicKey = publicKey,
+            )
         }
 
-        val publicKey = stdout.lines()
-            .firstOrNull { it.startsWith("PUBLIC_KEY=") }
-            ?.removePrefix("PUBLIC_KEY=")
-            ?.trim()
-            ?: throw IllegalStateException("PUBLIC_KEY not found in binary output:\n$stdout")
-
-        GeneratedKeyPair(
-            privateKeyFile = PRIVATE_KEY_FILENAME,
-            publicKey = publicKey,
-        )
-    }
+    /** Returns the per-config private key filename for [configId]. */
+    fun keyFileNameFor(configId: String): String = "client-$configId.private.key"
 }

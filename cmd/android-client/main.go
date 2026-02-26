@@ -40,6 +40,7 @@ func main() {
 	filesDir := flag.String("files-dir", ".", "Directory for writing key files (use Android Context.getFilesDir())")
 	getSS := flag.Bool("get-ss", false, "Generate Shadowsocks config from client config")
 	genKeys := flag.Bool("gen-keys", false, "Generate a new pair of Ed25519 keys (public/private)")
+	keyName := flag.String("key-name", "client.private.key", "Output filename for the generated private key (used with -gen-keys)")
 	tunSocket := flag.String("tun-socket", "", "Abstract Unix socket name for receiving TUN fd via SCM_RIGHTS (VPN mode)")
 	flag.Parse()
 
@@ -48,7 +49,7 @@ func main() {
 		if err != nil {
 			log.Fatalf("Failed to generate keys: %v", err)
 		}
-		keyPath := filepath.Join(*filesDir, "client.private.key")
+		keyPath := filepath.Join(*filesDir, *keyName)
 		if err := os.WriteFile(keyPath, priv, 0600); err != nil {
 			log.Fatalf("Failed to save private key: %v", err)
 		}
