@@ -71,7 +71,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
             selected = !config.useVpnMode,
             onClick = { viewModel.setVpnMode(false) },
             title = "SOCKS5 Proxy",
-            description = "Phoenix listens locally on 127.0.0.1:10080. Configure individual apps to use this proxy. No root or VPN permission required.",
+            description = "Phoenix listens on 0.0.0.0:1080. Configure individual apps to use this proxy. No root or VPN permission required.",
             icon = {
                 Icon(
                     imageVector = Icons.Outlined.Router,

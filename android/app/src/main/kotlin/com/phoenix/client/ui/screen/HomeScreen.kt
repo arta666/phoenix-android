@@ -89,6 +89,7 @@ fun HomeScreen(
     val uiState by viewModel.uiState.collectAsState()
     val connectionMode by viewModel.connectionMode.collectAsState()
     val isConfigured by viewModel.isConfigured.collectAsState()
+    val config by viewModel.config.collectAsState()
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -283,7 +284,7 @@ fun HomeScreen(
             Spacer(Modifier.height(28.dp))
 
             // ── Stats card — always visible ────────────────────────────────────
-            StatsCard(uiState = uiState, connectionMode = connectionMode)
+            StatsCard(uiState = uiState, connectionMode = connectionMode, localSocksAddr = config.localSocksAddr)
 
             Spacer(Modifier.height(24.dp))
         }
@@ -516,7 +517,7 @@ private fun ContextualHint(
 // ── Stats card — always visible ────────────────────────────────────────────────
 
 @Composable
-private fun StatsCard(uiState: HomeUiState, connectionMode: ConnectionMode) {
+private fun StatsCard(uiState: HomeUiState, connectionMode: ConnectionMode, localSocksAddr: String) {
     val isConnected = uiState.connectionStatus == ConnectionStatus.CONNECTED
 
     Surface(
@@ -551,7 +552,7 @@ private fun StatsCard(uiState: HomeUiState, connectionMode: ConnectionMode) {
                 label = "Uptime",
                 value = if (isConnected) formatUptime(uiState.uptimeSeconds) else "—",
             )
-            StatRow(label = "Local proxy", value = "127.0.0.1:10080")
+            StatRow(label = "Local proxy", value = localSocksAddr)
         }
     }
 }

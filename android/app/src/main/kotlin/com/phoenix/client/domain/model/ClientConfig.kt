@@ -15,7 +15,7 @@ import java.util.UUID
  *                        empty when a key file was imported from device storage.
  * @param useVpnMode      When true, the app starts an Android VpnService for system-wide
  *                        transparent proxying. When false, only a local SOCKS5 proxy is used.
- * @param localSocksAddr  Local SOCKS5 listen address. Default: 127.0.0.1:10080.
+ * @param localSocksAddr  Local SOCKS5 listen address. Default: 0.0.0.0:1080.
  * @param enableUdp       Whether to allow SOCKS5 UDP ASSOCIATE.
  */
 data class ClientConfig(
@@ -26,7 +26,7 @@ data class ClientConfig(
     val privateKeyFile: String = "",
     val clientPublicKey: String = "",
     val useVpnMode: Boolean = false,
-    val localSocksAddr: String = "127.0.0.1:10080",
+    val localSocksAddr: String = "0.0.0.0:1080",
     val enableUdp: Boolean = false,
     val authToken: String = "",
     val tlsMode: String = "",        // "" | "system" | "insecure"

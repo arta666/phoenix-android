@@ -77,7 +77,7 @@ func main() {
 	if *tunSocket != "" {
 		// ── VPN mode ─────────────────────────────────────────────────────────
 		// Find the SOCKS5 inbound address — tun2socks routes into it.
-		socksAddr := "127.0.0.1:10080"
+		socksAddr := "0.0.0.0:1080"
 		for _, in := range cfg.Inbounds {
 			if in.Protocol == protocol.ProtocolSOCKS5 {
 				socksAddr = in.LocalAddr

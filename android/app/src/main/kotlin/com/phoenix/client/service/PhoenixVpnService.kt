@@ -300,7 +300,7 @@ class PhoenixVpnService : VpnService() {
         remoteAddr = getStringExtra(EXTRA_REMOTE_ADDR) ?: "",
         serverPubKey = getStringExtra(EXTRA_SERVER_PUBKEY) ?: "",
         privateKeyFile = getStringExtra(EXTRA_PRIVATE_KEY_FILE) ?: "",
-        localSocksAddr = getStringExtra(EXTRA_LOCAL_SOCKS_ADDR) ?: "127.0.0.1:10080",
+        localSocksAddr = getStringExtra(EXTRA_LOCAL_SOCKS_ADDR) ?: "0.0.0.0:1080",
         enableUdp = getBooleanExtra(EXTRA_ENABLE_UDP, false),
         authToken = getStringExtra(EXTRA_AUTH_TOKEN) ?: "",
         tlsMode = getStringExtra(EXTRA_TLS_MODE) ?: "",

@@ -821,7 +821,7 @@ private fun ConfigEditContent(
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
-        FieldDescription("Local address where Phoenix listens for SOCKS5 connections. Default: 127.0.0.1:10080.")
+        FieldDescription("Local address where Phoenix listens for SOCKS5 connections. Default: 0.0.0.0:1080 (all interfaces).")
 
         Spacer(Modifier.height(16.dp))
 
