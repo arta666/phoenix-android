@@ -38,6 +38,9 @@ class PhoenixService : Service() {
         const val EXTRA_PRIVATE_KEY_FILE = "private_key_file"
         const val EXTRA_LOCAL_SOCKS_ADDR = "local_socks_addr"
         const val EXTRA_ENABLE_UDP = "enable_udp"
+        const val EXTRA_AUTH_TOKEN = "auth_token"
+        const val EXTRA_TLS_MODE = "tls_mode"
+        const val EXTRA_FINGERPRINT = "fingerprint"
 
         fun startIntent(context: Context, config: ClientConfig): Intent =
             Intent(context, PhoenixService::class.java).apply {
@@ -47,6 +50,9 @@ class PhoenixService : Service() {
                 putExtra(EXTRA_PRIVATE_KEY_FILE, config.privateKeyFile)
                 putExtra(EXTRA_LOCAL_SOCKS_ADDR, config.localSocksAddr)
                 putExtra(EXTRA_ENABLE_UDP, config.enableUdp)
+                putExtra(EXTRA_AUTH_TOKEN, config.authToken)
+                putExtra(EXTRA_TLS_MODE, config.tlsMode)
+                putExtra(EXTRA_FINGERPRINT, config.fingerprint)
             }
 
         fun stopIntent(context: Context): Intent =
@@ -221,5 +227,8 @@ class PhoenixService : Service() {
         privateKeyFile = getStringExtra(EXTRA_PRIVATE_KEY_FILE) ?: "",
         localSocksAddr = getStringExtra(EXTRA_LOCAL_SOCKS_ADDR) ?: "127.0.0.1:10080",
         enableUdp = getBooleanExtra(EXTRA_ENABLE_UDP, false),
+        authToken = getStringExtra(EXTRA_AUTH_TOKEN) ?: "",
+        tlsMode = getStringExtra(EXTRA_TLS_MODE) ?: "",
+        fingerprint = getStringExtra(EXTRA_FINGERPRINT) ?: "",
     )
 }

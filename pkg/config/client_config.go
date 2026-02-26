@@ -28,7 +28,14 @@ type ClientInbound struct {
 // It allows for multiple simultaneous inbound listeners on different ports.
 type ClientConfig struct {
 	// RemoteAddr is the address of the Phoenix server (e.g., "example.com:8080").
+	// Used for the HTTP Host header and TLS SNI — must be the domain, not a resolved IP.
 	RemoteAddr string `toml:"remote_addr"`
+
+	// DialAddr overrides the TCP dial target (e.g. a pre-resolved "ip:port").
+	// Android CGO_ENABLED=0 binaries cannot use system DNS (/etc/resolv.conf is absent),
+	// so the Kotlin layer resolves the hostname and writes the IP here, while RemoteAddr
+	// keeps the original domain for correct Host header and TLS SNI.
+	DialAddr string `toml:"dial_addr,omitempty"`
 
 	// AuthToken is sent to the server for authentication.
 	// Must match the server's auth_token.

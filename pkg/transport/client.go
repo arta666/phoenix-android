@@ -77,11 +77,16 @@ func dialWithFingerprint(network, addr string, tlsCfg *tls.Config, fingerprint s
 		return nil, err
 	}
 
-	// Extract host for SNI
+	// Extract host for SNI — prefer tlsCfg.ServerName when set (e.g. when addr is a
+	// pre-resolved IP but the domain is needed for Cloudflare / cert verification).
 	host, _, _ := net.SplitHostPort(addr)
+	sni := host
+	if tlsCfg != nil && tlsCfg.ServerName != "" {
+		sni = tlsCfg.ServerName
+	}
 
 	utlsCfg := &utls.Config{
-		ServerName:         host,
+		ServerName:         sni,
 		InsecureSkipVerify: tlsCfg.InsecureSkipVerify, //nolint:gosec
 		NextProtos:         tlsCfg.NextProtos,
 	}
@@ -129,13 +134,30 @@ func pickHelloID(fp string) utls.ClientHelloID {
 func (c *Client) createHTTPClient() *http.Client {
 	var tr *http2.Transport
 
+	// dialTarget returns the address to actually dial over TCP.
+	// When DialAddr is set (Android pre-resolved IP workaround), it is used for the TCP
+	// connection while RemoteAddr is kept for the HTTP Host header and TLS SNI.
+	dialTarget := func() string {
+		if c.Config.DialAddr != "" {
+			return c.Config.DialAddr
+		}
+		return c.Config.RemoteAddr
+	}
+
+	// sniHost extracts the hostname from RemoteAddr for use as TLS SNI.
+	sniHost, _, _ := net.SplitHostPort(c.Config.RemoteAddr)
+	if sniHost == "" {
+		sniHost = c.Config.RemoteAddr
+	}
+
 	// System TLS Mode (for CDN like Cloudflare)
 	if c.Config.TLSMode == "system" {
 		log.Println("[Transport] Creating SYSTEM TLS transport (System CA verification)")
-		baseTLS := &tls.Config{}
+		target := dialTarget()
+		baseTLS := &tls.Config{ServerName: sniHost}
 		tr = &http2.Transport{
 			DialTLS: func(network, addr string, cfg *tls.Config) (net.Conn, error) {
-				return dialWithFingerprint(network, addr, baseTLS, c.Config.Fingerprint)
+				return dialWithFingerprint(network, target, baseTLS, c.Config.Fingerprint)
 			},
 			StrictMaxConcurrentStreams: true,
 			ReadIdleTimeout:            0,
@@ -145,10 +167,11 @@ func (c *Client) createHTTPClient() *http.Client {
 		// Insecure TLS Mode: HTTPS but skip certificate verification.
 		// Use for direct connections to servers with self-signed TLS certs.
 		log.Println("[Transport] Creating INSECURE TLS transport (cert verification DISABLED)")
-		baseTLS := &tls.Config{InsecureSkipVerify: true} //nolint:gosec
+		target := dialTarget()
+		baseTLS := &tls.Config{InsecureSkipVerify: true, ServerName: sniHost} //nolint:gosec
 		tr = &http2.Transport{
 			DialTLS: func(network, addr string, cfg *tls.Config) (net.Conn, error) {
-				return dialWithFingerprint(network, addr, baseTLS, c.Config.Fingerprint)
+				return dialWithFingerprint(network, target, baseTLS, c.Config.Fingerprint)
 			},
 			StrictMaxConcurrentStreams: true,
 			ReadIdleTimeout:            0,
@@ -204,9 +227,10 @@ func (c *Client) createHTTPClient() *http.Client {
 			},
 		}
 
+		target := dialTarget()
 		tr = &http2.Transport{
 			DialTLS: func(network, addr string, _ *tls.Config) (net.Conn, error) {
-				return dialWithFingerprint(network, addr, tlsConfig, c.Config.Fingerprint)
+				return dialWithFingerprint(network, target, tlsConfig, c.Config.Fingerprint)
 			},
 			StrictMaxConcurrentStreams: true,
 			ReadIdleTimeout:            0,
@@ -216,10 +240,11 @@ func (c *Client) createHTTPClient() *http.Client {
 	} else {
 		// CLEARTEXT MODE (h2c)
 		log.Println("[Transport] Creating CLEARTEXT transport (h2c)")
+		target := dialTarget()
 		tr = &http2.Transport{
 			AllowHTTP: true,
 			DialTLS: func(network, addr string, cfg *tls.Config) (net.Conn, error) {
-				return net.Dial(network, addr)
+				return net.Dial(network, target)
 			},
 			StrictMaxConcurrentStreams: true,
 			ReadIdleTimeout:            0,
