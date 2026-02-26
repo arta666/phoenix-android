@@ -68,3 +68,4 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: phoenix-android-*.apk
+          prerelease: ${{ contains(github.ref_name, '-') }}
